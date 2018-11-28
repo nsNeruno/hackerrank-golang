@@ -1,19 +1,95 @@
+package interview_preparation_kit
+
+import "fmt"
+
+// https://www.hackerrank.com/challenges/crush/problem?h_l=interview&playlist_slugs%5B%5D=interview-preparation-kit&playlist_slugs%5B%5D=arrays
+// Solution is based from the discussion forum on the Challenge page itself
+func arrayManipulation(n int32, queries [][]int32) int64 {
+	max, arr, sum := int64(0), make([]int64, n), int64(0)
+
+	// Instead of observing increases on each individual value...
+	// We observe each beginning of range increase, and where it ends.
+	//
+	// For example:
+	// n = 5, m = 3
+	// a b  k
+	// 1 2 100 -> this will add 100 to n[1 - 1] and -100 to n[2]
+	// 2 5 100 -> this will add 100 to n[2 - 1] and should add -100 to n[5] or none at all since it is beyond index range
+	// 3 4 100
+	// Expected output: 200
+	//
+	// Begin with: [5]int64 {0, 0, 0, 0, 0}
+	// Then we iterate through the queries
+	// m[0]: {100, 0, -100, 0, 0}
+	// m[1]: {100, 100, -100, 0, 0}
+	// m[2]: {100, 100, 0, 0, -100}
+	//
+	// Then we'll get sum of the whole array
+	// while observing the peak sum as max value
+	// (0)+100 100(+100) 200(+0) 200(+0) 100(-100)
+
+	for i := 0; i < len(queries); i++ {
+		query := queries[i]
+		a := query[0] - 1
+		b := query[1] - 1
+		k := int64(query[2])
+		arr[a] += k
+		if b+1 < n {
+			arr[b+1] -= k
+		}
+	}
+	for i := int32(0); i < n; i++ {
+		if arr[i] != 0 {
+			sum += arr[i]
+			if sum > max {
+				max = sum
+			}
+		}
+	}
+	return max
+}
+
+// https://www.hackerrank.com/challenges/ctci-array-left-rotation/problem?h_l=interview&playlist_slugs%5B%5D=interview-preparation-kit&playlist_slugs%5B%5D=arrays
+func rotLeft(a []int32, d int32) []int32 {
+	var l = len(a)
+	rotated := make([]int32, l)
+	for i := 0; i < l; i++ {
+		var s = i + int(d)
+		for s >= l {
+			s -= l
+		}
+		rotated[i] = a[s]
+	}
+	return rotated
+}
+
+// https://www.hackerrank.com/challenges/minimum-swaps-2/problem?h_l=interview&playlist_slugs%5B%5D=interview-preparation-kit&playlist_slugs%5B%5D=arrays
+func minimumSwaps(arr []int32) int32 {
+	swaps := int32(0)
+	l := len(arr)
+
+	// Simply iterate through each element from the start, find the correct one somewhere, and swap it!
+	for i := 0; i < l-1; i++ {
+		k := int32(i + 1)
+		if arr[i] != k {
+			for j := k; j < int32(l); j++ {
+				if arr[j] == k {
+					swap := arr[i]
+					arr[i] = k
+					arr[j] = swap
+					swaps++
+					break
+				}
+			}
+		}
+	}
+	return swaps
+}
+
 // https://www.hackerrank.com/challenges/new-year-chaos/problem?h_l=interview&playlist_slugs%5B%5D=interview-preparation-kit&playlist_slugs%5B%5D=arrays
-package main
-
-import (
-	"bufio"
-	"fmt"
-	"io"
-	"os"
-	"strconv"
-	"strings"
-)
-
+//
 // Solution is referenced from "Isming"'s solution, translated from C++ into GoLang
 // https://www.hackerrank.com/challenges/new-year-chaos/forum/comments/143969?h_l=interview&playlist_slugs%5B%5D=interview-preparation-kit&playlist_slugs%5B%5D=arrays
-//
-// Complete the minimumBribes function below.
 func minimumBribes(q []int32) {
 	var bribes = 0
 
@@ -90,46 +166,4 @@ func minimumBribes(q []int32) {
 	}
 	// Expected result: 3
 	fmt.Println(bribes)
-}
-
-func main() {
-	reader := bufio.NewReaderSize(os.Stdin, 1024*1024)
-
-	tTemp, err := strconv.ParseInt(readLine(reader), 10, 64)
-	checkError(err)
-	t := int32(tTemp)
-
-	for tItr := 0; tItr < int(t); tItr++ {
-		nTemp, err := strconv.ParseInt(readLine(reader), 10, 64)
-		checkError(err)
-		n := int32(nTemp)
-
-		qTemp := strings.Split(readLine(reader), " ")
-
-		var q []int32
-
-		for i := 0; i < int(n); i++ {
-			qItemTemp, err := strconv.ParseInt(qTemp[i], 10, 64)
-			checkError(err)
-			qItem := int32(qItemTemp)
-			q = append(q, qItem)
-		}
-
-		minimumBribes(q)
-	}
-}
-
-func readLine(reader *bufio.Reader) string {
-	str, _, err := reader.ReadLine()
-	if err == io.EOF {
-		return ""
-	}
-
-	return strings.TrimRight(string(str), "\r\n")
-}
-
-func checkError(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
